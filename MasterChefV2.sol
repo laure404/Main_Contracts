@@ -7,12 +7,12 @@ import "./libs/IBEP20.sol";
 import "./libs/SafeBEP20.sol";
 
 import "./utils/ReentrancyGuard.sol";
-import "./PlatineToken.sol";
+import "./LatineToken.sol";
 
 // MasterChef is the master of Platinium. He can make mine Platinium and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once Platine is sufficiently
+// will be transferred to a governance smart contract once Latine is sufficiently
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
@@ -25,10 +25,10 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         uint256 amount;         // How many LP tokens the user has provided.
         uint256 rewardDebt;     // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of Platine
+        // We do some fancy math here. Basically, any point in time, the amount of Latine
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accPlatinePerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accLatinePerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
         //   1. The pool's `accPlatiniumPerShare` (and `lastRewardBlock`) gets updated.
@@ -40,19 +40,19 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     // Info of each pool.
     struct PoolInfo {
         IBEP20 lpToken;           // Address of LP token contract.
-        uint256 allocPoint;       // How many allocation points assigned to this pool. Platine to distribute per block.
-        uint256 lastRewardBlock;  // Last block number that Platine distribution occurs.
-        uint256 accPlatinePerShare;   // Accumulated Platine per share, times 1e12. See below.
+        uint256 allocPoint;       // How many allocation points assigned to this pool. Latine to distribute per block.
+        uint256 lastRewardBlock;  // Last block number that Latine distribution occurs.
+        uint256 accLatinePerShare;   // Accumulated Latine per share, times 1e12. See below.
         uint16 depositFeeBP;      // Deposit fee in basis points
     }
 
     // The PT TOKEN!
-    PlatineToken public pt;
+    LatineToken public pt;
     // Dev address.
     address public devaddr;
     // PT tokens created per block.
-    uint256 public PlatinePerBlock;
-    // Bonus muliplier for early Platine makers.
+    uint256 public LatinePerBlock;
+    // Bonus muliplier for early Latine makers.
     uint256 public constant BONUS_MULTIPLIER = 1;
     // Deposit Fee address
     address public feeAddress;
@@ -63,7 +63,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when Platine mining starts.
+    // The block number when Latine mining starts.
     uint256 public startBlock;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -74,16 +74,16 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     event UpdateEmissionRate(address indexed user, uint256 goosePerBlock);
 
     constructor(
-        PlatineToken _pt,
+        LatineToken _pt,
         address _devaddr,
         address _feeAddress,
-        uint256 _PlatinePerBlock,
+        uint256 _LatinePerBlock,
         uint256 _startBlock
     ) public {
         pt = _pt;
         devaddr = _devaddr;
         feeAddress = _feeAddress;
-        PlatinePerBlock = _PlatinePerBlock;
+        LatinePerBlock = _LatinePerBlock;
         startBlock = _startBlock;
     }
 
@@ -110,7 +110,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         lpToken : _lpToken,
         allocPoint : _allocPoint,
         lastRewardBlock : lastRewardBlock,
-        accPlatinePerShare : 0,
+        accLatinePerShare : 0,
         depositFeeBP : _depositFeeBP
         }));
     }
@@ -131,18 +131,18 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         return _to.sub(_from).mul(BONUS_MULTIPLIER);
     }
 
-    // View function to see pending Platine on frontend.
-    function pendingPlatine(uint256 _pid, address _user) external view returns (uint256) {
+    // View function to see pending Latine on frontend.
+    function pendingLatine(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accPlatinePerShare = pool.accPlatinePerShare;
+        uint256 accLatinePerShare = pool.accLatinePerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 PlatineReward = multiplier.mul(PlatinePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            accPlatinePerShare = accPlatinePerShare.add(PlatineReward.mul(1e12).div(lpSupply));
+            uint256 LatineReward = multiplier.mul(LatinePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            accLatinePerShare = accLatinePerShare.add(LatineReward.mul(1e12).div(lpSupply));
         }
-        return user.amount.mul(accPlatinePerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(accLatinePerShare).div(1e12).sub(user.rewardDebt);
     }
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -165,22 +165,22 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 PlatineReward = multiplier.mul(PlatinePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        pt.mint(devaddr, PlatineReward.div(10));
-        pt.mint(address(this), PlatineReward);
-        pool.accPlatinePerShare = pool.accPlatinePerShare.add(PlatineReward.mul(1e12).div(lpSupply));
+        uint256 LatineReward = multiplier.mul(LatinePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+        pt.mint(devaddr, LatineReward.div(10));
+        pt.mint(address(this), LatineReward);
+        pool.accLatinePerShare = pool.accLatinePerShare.add(LatineReward.mul(1e12).div(lpSupply));
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for Platine allocation.
+    // Deposit LP tokens to MasterChef for Latine allocation.
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
         if (user.amount > 0) {
-            uint256 pending = user.amount.mul(pool.accPlatinePerShare).div(1e12).sub(user.rewardDebt);
+            uint256 pending = user.amount.mul(pool.accLatinePerShare).div(1e12).sub(user.rewardDebt);
             if (pending > 0) {
-                safePlatineTransfer(msg.sender, pending);
+                safeLatineTransfer(msg.sender, pending);
             }
         }
         if (_amount > 0) {
@@ -193,7 +193,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
                 user.amount = user.amount.add(_amount);
             }
         }
-        user.rewardDebt = user.amount.mul(pool.accPlatinePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accLatinePerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
@@ -203,15 +203,15 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
-        uint256 pending = user.amount.mul(pool.accPlatinePerShare).div(1e12).sub(user.rewardDebt);
+        uint256 pending = user.amount.mul(pool.accLatinePerShare).div(1e12).sub(user.rewardDebt);
         if (pending > 0) {
-            safePlatineTransfer(msg.sender, pending);
+            safeLatineTransfer(msg.sender, pending);
         }
         if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
-        user.rewardDebt = user.amount.mul(pool.accPlatinePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accLatinePerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
@@ -226,16 +226,16 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         emit EmergencyWithdraw(msg.sender, _pid, amount);
     }
 
-    // Safe Platine transfer function, just in case if rounding error causes pool to not have enough Platine.
-    function safePlatineTransfer(address _to, uint256 _amount) internal {
-        uint256 PlatineBal = pt.balanceOf(address(this));
+    // Safe Latine transfer function, just in case if rounding error causes pool to not have enough Latine.
+    function safeLatineTransfer(address _to, uint256 _amount) internal {
+        uint256 LatineBal = pt.balanceOf(address(this));
         bool transferSuccess = false;
-        if (_amount > PlatineBal) {
-            transferSuccess = pt.transfer(_to, PlatineBal);
+        if (_amount > LatineBal) {
+            transferSuccess = pt.transfer(_to, LatineBal);
         } else {
             transferSuccess = pt.transfer(_to, _amount);
         }
-        require(transferSuccess, "safePlatineTransfer: transfer failed");
+        require(transferSuccess, "safeLatineTransfer: transfer failed");
     }
 
     // Update dev address by the previous dev.
@@ -252,9 +252,9 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     }
 
     //Pancake has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
-    function updateEmissionRate(uint256 _PlatinePerBlock) public onlyOwner {
+    function updateEmissionRate(uint256 _LatinePerBlock) public onlyOwner {
         massUpdatePools();
-        PlatinePerBlock = _PlatinePerBlock;
-        emit UpdateEmissionRate(msg.sender, _PlatinePerBlock);
+        LatinePerBlock = _LatinePerBlock;
+        emit UpdateEmissionRate(msg.sender, _LatinePerBlock);
     }
 }
