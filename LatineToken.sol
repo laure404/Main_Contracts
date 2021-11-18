@@ -2,8 +2,8 @@ pragma solidity 0.6.12;
 
 import "./libs/BEP20.sol";
 
-// Platinium token with Governance.
-contract PlatineToken is BEP20('Platinium Token', 'PLT') {
+// Latinium token with Governance.
+contract LatineToken is BEP20('Latinium Token', 'LLT') {
     /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
@@ -181,7 +181,7 @@ contract PlatineToken is BEP20('Platinium Token', 'PLT') {
         internal
     {
         address currentDelegate = _delegates[delegator];
-        uint256 delegatorBalance = balanceOf(delegator); // balance of underlying Platine (not scaled);
+        uint256 delegatorBalance = balanceOf(delegator); // balance of underlying Latine (not scaled);
         _delegates[delegator] = delegatee;
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
